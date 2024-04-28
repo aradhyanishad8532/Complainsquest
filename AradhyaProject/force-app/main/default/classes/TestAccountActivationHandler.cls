@@ -21,23 +21,23 @@ public class TestAccountActivationHandler {
         PermissionSetAssignment psa = new PermissionSetAssignment(
             AssigneeId = u.Id,
             PermissionSetId = ps.Id
+        
+        
         );
         insert psa;
-        
-        
         
         System.runAs(u) {
              Account acc1 = new Account(
             Name = 'Test Account 1',
             Type = 'Customer',
-            VGActive__c = true
+            ANActive__c = true
         
         );
         insert acc1;
            Account acc2 = new Account(
             Name = 'Test Account 2',
             Type = 'Customer',
-            VGActive__c = false
+            ANActive__c = false
         
         );
         insert acc2;  
@@ -76,7 +76,7 @@ public class TestAccountActivationHandler {
         
         
              Account acc = [SELECT Id,Phone,Company_Email_c,VGActive_c FROM Account WHERE Name = 'Test Account 2' LIMIT 1];
-            acc.VGActive__c = true;
+            acc.ANActive__c = true;
             Test.startTest();
             update acc;
             Test.stopTest();
