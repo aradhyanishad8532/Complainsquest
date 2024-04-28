@@ -1,23 +1,28 @@
 public class AccountTriggerHandler {
-    public static void accountTrigger(List<Account> newAccounts, Map<Id, Account> oldMap) {
+    public static void accountTrigger(Map<Id, Account> newMap, Map<Id, Account> oldMap) {
+        Set<Id> accountIdsWithContacts = new Set<Id>();
         List<Contact> newContacts = new List<Contact>();
-        Set<Id> accountIds = new Set<Id>();
 
-        for (Account acc : newAccounts) {
-            if (acc.Type == 'Customer - Direct' && acc.AGActive__c && (Trigger.isInsert || (Trigger.isUpdate && oldMap.get(acc.Id).AGActive__c == false))) {
-                accountIds.add(acc.Id);
-            }
+        for (Contact existingContact : [SELECT AccountId FROM Contact WHERE AccountId IN :newMap.keySet()]) {
+            accountIdsWithContacts.add(existingContact.AccountId);
         }
-   List<Account>accountList = [SELECT Id,Name,Phone,Company_Email__c FROM Account WHERE Id IN :accountIds];
-        if (!accountIds.isEmpty()) {
-            for (Account acc :accountList) {
-                newContacts.add(new Contact(
-                    FirstName = acc.Name,
-                    LastName = 'Customer Representative',
-                    Phone = acc.Phone,
-                    Email = acc.Company_Email__c,
-                    AccountId = acc.Id
-                ));
+		
+        
+        for (Id accountId : newMap.keySet()) {
+            Account newAccount = newMap.get(accountId);
+            Account oldAccount = oldMap != null ? oldMap.get(accountId) : null;
+
+            if (newAccount.Type != null && newAccount.VGActive_c && (Trigger.isInsert || (Trigger.isUpdate && (oldAccount == null || !oldAccount.VGActive_c)))) {
+                if (!accountIdsWithContacts.contains(accountId)) {
+                    newContacts.add(new Contact(
+                        FirstName = newAccount.Name,
+                        LastName = 'Customer Representative',
+                        Phone = newAccount.Phone,
+                        Email = newAccount.Company_Email__c,
+                        AccountId = accountId
+                    ));
+                    accountIdsWithContacts.add(accountId); 
+                }
             }
         }
 
