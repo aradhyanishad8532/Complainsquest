@@ -1,14 +1,15 @@
 @isTest
-public class TestAccountActivationHandler {
+public class TestAccountTriggerHandler{
     public static User u;
     public static PermissionSet ps;
     @testSetup
     public static void setup() {
  
        Profile p = [SELECT Id FROM Profile WHERE Name='Standard User' LIMIT 1];
+        
 	system.debug(p);
         
-        ps = [SELECT Id FROM PermissionSet WHERE Name='Account_Manager'];
+        ps = [SELECT Id FROM PermissionSet WHERE Name='Account_Managers'];
         system.debug(ps);
         
        u = new User(Alias = 'standt', Email='standarduser@testorg.com',
@@ -26,63 +27,74 @@ public class TestAccountActivationHandler {
         );
         insert psa;
         
-        System.runAs(u) {
-             Account acc1 = new Account(
-            Name = 'Test Account 1',
-            Type = 'Customer',
-            ANActive__c = true
         
-        );
-        insert acc1;
-           Account acc2 = new Account(
-            Name = 'Test Account 2',
-            Type = 'Customer',
-            ANActive__c = false
         
-        );
-        insert acc2;  
-            
-            
-        }
-            
     }
 
     @isTest
     public static void testAccountInsertion() {
+        User u = [select Id,Name from User where UserName='testpermissionsetuserAstreait@testorg.com'];
+        System.runAs(u) {
+           
+            Account acc = new Account(
+            Name = 'Test Account 1',
+            Type = 'Customer',
+            AGActive__c = true
+        
+        );
+        insert acc;
+            
         
         
-            Account acc = [SELECT Id,Phone,Company_Email__c FROM Account WHERE Name = 'Test Account 1' LIMIT 1];
+            
+           // Account acc = [SELECT Id,Phone,Company_Email__c FROM Account WHERE Name = 'Test Account 1' LIMIT 1];
             List<Contact> createdContacts = [SELECT Id,Phone,Email,LastName FROM Contact WHERE AccountId = :acc.Id];
             System.assertEquals(1, createdContacts.size(), 'Default contact not created for active customer account');
             System.assertEquals(createdContacts[0].Phone, acc.Phone);
             System.assertEquals(createdContacts[0].Email, acc.Company_Email__c);
-            System.assertEquals(createdContacts[0].LastName,'Customer Representative');
+            System.assertEquals(createdContacts[0].LastName,'Customer Representative'); 
+        }
+           
         }
     
 	
      @isTest
     public static void testAccountInsertionFalied() {
-       
+       	User u = [select Id,Name from User where UserName='testpermissionsetuserAstreait@testorg.com'];
+        	 System.runAs(u) {
+                 Account acc = new Account(
+            Name = 'Test Account 2',
+            Type = 'Customer',
+            AGActive__c = false
         
-            Account acc = [SELECT Id,Phone,Company_Email__c FROM Account WHERE Name = 'Test Account 2' LIMIT 1];
+        );
+        insert acc;  
+            //Account acc = [SELECT Id,Phone,Company_Email__c FROM Account WHERE Name = 'Test Account 2' LIMIT 1];
             List<Contact> createdContacts = [SELECT Id,Phone,Email,LastName FROM Contact WHERE AccountId = :acc.Id];
             System.assertEquals(0, createdContacts.size(), 'No contact should be created for an inactive customer account');
-           
+             }
       
     }
 
     @isTest
     public static void testAccountUpdate() {
+        User u = [select Id,Name from User where UserName='testpermissionsetuserAstreait@testorg.com'];
+        	 System.runAs(u) {
+                 Account acc = new Account(
+            Name = 'Test Account 2',
+            Type = 'Customer',
+            AGActive__c = false
         
-        
-             Account acc = [SELECT Id,Phone,Company_Email_c,VGActive_c FROM Account WHERE Name = 'Test Account 2' LIMIT 1];
-            acc.ANActive__c = true;
+        );
+        insert acc;     
+             //Account acc = [SELECT Id,Phone,Company_Email_c,AGActive_c FROM Account WHERE Name = 'Test Account 2' LIMIT 1];
+            acc.AGActive__c = true;
             Test.startTest();
             update acc;
             Test.stopTest();
             List<Contact> createdContacts = [SELECT Id FROM Contact WHERE AccountId = :acc.Id];
             System.assertEquals(1, createdContacts.size(), 'Default contact not created for active customer account');
-             System.assertEquals(acc.VGActive__c,true);
-            
+             System.assertEquals(acc.AGActive__c,true);
+             }
         }
     }
