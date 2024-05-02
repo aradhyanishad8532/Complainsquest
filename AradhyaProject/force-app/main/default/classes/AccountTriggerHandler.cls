@@ -12,7 +12,8 @@ public class AccountTriggerHandler {
             Account newAccount = newMap.get(accountId);
             Account oldAccount = oldMap != null ? oldMap.get(accountId) : null;
 
-            if (newAccount.Type != null && newAccount.ANActive__c && (Trigger.isInsert || (Trigger.isUpdate && (oldAccount == null || !oldAccount.ANActive__c)))) {
+            if (newAccount.Type != null && newAccount.AGActive__c && 
+                isCustomerAccountType(newAccount.Type) && (Trigger.isInsert || (Trigger.isUpdate && (oldAccount == null || !oldAccount.AGActive__c)))) {
                 if (!accountIdsWithContacts.contains(accountId)) {
                     newContacts.add(new Contact(
                         FirstName = newAccount.Name,
@@ -30,4 +31,10 @@ public class AccountTriggerHandler {
             insert newContacts;
         }
     }
+     public static Boolean isCustomerAccountType(String accountType) {
+    if (accountType == null) {
+        return false;
+    }
+    return accountType.startsWith('Customer');
+}
 }
